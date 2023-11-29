@@ -10,10 +10,10 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Authorization',
   });
   const config = new DocumentBuilder()
-    .setTitle('Musics example')
-    .setDescription('The music API description')
+    .setTitle('Silkie example')
+    .setDescription('The silkie API description')
     .setVersion('1.0')
-    .addTag('music')
+    .addTag('silkie')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
