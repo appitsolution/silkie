@@ -5,7 +5,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: ['http://localhost:3001', 'https://music-front-alpha.vercel.app'],
+    origin: ['*'],
     methods: 'GET,PUT,POST,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
   });
