@@ -1,19 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Users } from './schemas/users.schema';
-import mongoose from 'mongoose';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { Request } from 'express';
 import getBearerToken from 'src/methods/getBearerToken';
+import { InjectRepository } from '@nestjs/typeorm';
+import { users } from './entities/users.entity';
+import { Repository } from 'typeorm';
+import generateRandomId from 'src/methods/generateRandomId';
+import { Users } from './schemas/users.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(Users.name) private authModel: mongoose.Model<Users>,
+    @InjectRepository(users)
+    private readonly usersModule: Repository<users>,
+    @InjectModel(Users.name) private usersModelData: mongoose.Model<Users>,
   ) {}
 
   async create(data: CreateAuthDto) {
@@ -25,7 +30,9 @@ export class AuthService {
     }
 
     try {
-      const checkUser = await this.authModel.findOne({ email: data.email });
+      const checkUser = await this.usersModule.findOne({
+        where: { email: data.email },
+      });
       if (checkUser) {
         return {
           code: 409,
@@ -33,10 +40,18 @@ export class AuthService {
         };
       }
 
-      const result = await this.authModel.create({
-        ...data,
-        password: bcrypt.hashSync(data.password),
-      });
+      const generateId = generateRandomId();
+
+      const result = await this.usersModule.save(
+        this.usersModule.create({
+          id: generateId,
+          role: data.role,
+          email: data.email,
+          password: bcrypt.hashSync(data.password),
+        }),
+      );
+
+      await this.usersModelData.create({ userId: generateId });
 
       return {
         code: 201,
@@ -59,8 +74,10 @@ export class AuthService {
     }
 
     try {
-      const checkUser = await this.authModel.findOne({
-        email: data.email,
+      const checkUser = await this.usersModule.findOne({
+        where: {
+          email: data.email,
+        },
       });
 
       if (!checkUser) {
@@ -85,6 +102,7 @@ export class AuthService {
         };
       }
     } catch (err) {
+      console.log(err);
       return {
         code: 500,
         message: err,
@@ -103,7 +121,11 @@ export class AuthService {
         };
       }
       const login = jwt.verify(token, process.env.SECRET_KEY);
-      const checkUser = await this.authModel.findOne({ _id: login.id });
+      const checkUser = await this.usersModule.findOne({
+        where: {
+          id: login.id,
+        },
+      });
 
       if (checkUser) {
         return {

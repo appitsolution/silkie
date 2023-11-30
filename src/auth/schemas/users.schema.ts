@@ -5,20 +5,14 @@ import { Role } from 'src/constants/roles';
   timestamps: true,
 })
 export class Users {
-  @Prop({ default: Role.OWNER })
-  role: string;
+  @Prop({ required: true })
+  userId: string;
 
   @Prop()
   firstName: string;
 
   @Prop()
   lastName: string;
-
-  @Prop()
-  email: string;
-
-  @Prop()
-  password: string;
 
   @Prop({ default: 'USD' })
   currentCurrency: string;

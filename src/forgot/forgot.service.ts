@@ -7,12 +7,16 @@ import mongoose from 'mongoose';
 import { Forgot } from './schemas/forgot.schema';
 import generateRandomCode from 'src/methods/generateRandomCode';
 import generateTemporaryPassword from 'src/methods/generateTemporaryPassword';
+import { users } from 'src/auth/entities/users.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 const bcrypt = require('bcryptjs');
 
 @Injectable()
 export class ForgotService {
   constructor(
-    @InjectModel(Users.name) private authModel: mongoose.Model<Users>,
+    @InjectRepository(users)
+    private readonly usersModule: Repository<users>,
     @InjectModel(Forgot.name) private forgotModel: mongoose.Model<Forgot>,
   ) {}
 
@@ -25,7 +29,9 @@ export class ForgotService {
     }
 
     try {
-      const checkUser = await this.authModel.findOne({ email: email });
+      const checkUser = await this.usersModule.findOne({
+        where: { email: email },
+      });
 
       if (!checkUser) {
         return {
@@ -35,7 +41,7 @@ export class ForgotService {
       }
 
       const checkForgot = await this.forgotModel.findOne({
-        userId: checkUser._id,
+        userId: checkUser.id,
       });
       const code = generateRandomCode();
       if (checkForgot) {
@@ -50,7 +56,7 @@ export class ForgotService {
           message: 'ok',
         };
       } else {
-        await this.forgotModel.create({ userId: checkUser._id, code: code });
+        await this.forgotModel.create({ userId: checkUser.id, code: code });
 
         return {
           code: 200,
@@ -92,8 +98,8 @@ export class ForgotService {
 
       const temporaryPassword = generateTemporaryPassword();
 
-      await this.authModel.findOneAndUpdate(
-        { _id: userId },
+      await this.usersModule.update(
+        { id: userId },
         { password: bcrypt.hashSync(temporaryPassword) },
       );
 

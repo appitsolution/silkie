@@ -6,15 +6,25 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ForgotModule } from './forgot/forgot.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { users } from './auth/entities/users.entity';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      'mongodb+srv://test_education:Fm5xGy5NlfsDXhu0@cluster0.svrxsep.mongodb.net/auth',
-    ),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: '',
+      database: 'auth',
+      entities: [users],
+      synchronize: false,
+    }),
     MongooseModule.forRoot(
       'mongodb+srv://test_education:Fm5xGy5NlfsDXhu0@cluster0.svrxsep.mongodb.net/plugin',
     ),
+
     AuthModule,
     ForgotModule,
     PermissionsModule,
