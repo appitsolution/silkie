@@ -3,8 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
   Delete,
   Query,
   Req,
@@ -17,6 +15,7 @@ import { UpdateEmailDto } from './dto/update-email.dto';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
+import { UpdateSettingsDto } from './dto/update-settings.dto';
 
 @Controller('profile')
 export class ProfileController {
@@ -45,6 +44,12 @@ export class ProfileController {
   @Put('password')
   editPassword(@Body() data: UpdatePasswordDto, @Req() req: Request) {
     return this.profileService.editPassword(data, req);
+  }
+
+  @ApiHeader({ name: 'Authorization' })
+  @Put('settings')
+  editSettings(@Body() data: UpdateSettingsDto, @Req() req: Request) {
+    return this.profileService.editSettings(data, req);
   }
 
   @ApiHeader({ name: 'Authorization' })

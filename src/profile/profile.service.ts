@@ -14,12 +14,16 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import generateRandomId from 'src/methods/generateRandomId';
 import { Role } from 'src/constants/roles';
+import { PrePayment } from './schemas/prepayment.schema';
+import { UpdateSettingsDto } from './dto/update-settings.dto';
 const bcrypt = require('bcryptjs');
 
 @Injectable()
 export class ProfileService {
   constructor(
     @InjectModel(Users.name) private usersModelData: mongoose.Model<Users>,
+    @InjectModel(PrePayment.name)
+    private prepaymentModel: mongoose.Model<PrePayment>,
     @InjectRepository(users)
     private readonly usersModule: Repository<users>,
   ) {}
@@ -71,6 +75,8 @@ export class ProfileService {
         .lean()
         .exec();
 
+      const prepayment = await this.prepaymentModel.findOne({ userId: userId });
+
       const userNative = await this.usersModule.findOne({
         where: {
           id: userId,
@@ -84,6 +90,7 @@ export class ProfileService {
           ...userData,
           email: userNative.email,
           role: userNative.role,
+          prepayment,
         },
       };
     } catch (err) {
@@ -259,6 +266,59 @@ export class ProfileService {
       return {
         code: 200,
         message: 'update password',
+      };
+    } catch (err) {
+      return {
+        code: 500,
+        message: err,
+      };
+    }
+  }
+
+  async editSettings(data: UpdateSettingsDto, req: Request) {
+    const token = getBearerToken(req);
+    if (!data.userId || !data.currency || !data.language || !token) {
+      return {
+        code: 400,
+        message: 'Not all arguments',
+      };
+    }
+
+    try {
+      const login = getJwt(token);
+      if (!login) {
+        return {
+          code: 404,
+          message: 'user not found',
+        };
+      }
+
+      const currentUser = await this.usersModelData.findOne({
+        userId: login.id,
+      });
+
+      if (!currentUser) {
+        return {
+          code: 404,
+          message: 'user not found',
+        };
+      }
+
+      if (currentUser.userId !== data.userId) {
+        return {
+          code: 403,
+          message: 'You do not have permission',
+        };
+      }
+
+      await this.usersModelData.findOneAndUpdate(
+        { userId: data.userId },
+        { currentCurrency: data.currency, currentLang: data.language },
+      );
+
+      return {
+        code: 200,
+        message: 'update settings',
       };
     } catch (err) {
       return {

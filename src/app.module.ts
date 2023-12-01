@@ -9,6 +9,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { users } from './auth/entities/users.entity';
 import { ProfileModule } from './profile/profile.module';
+import { BasketModule } from './basket/basket.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ProfileModule } from './profile/profile.module';
     PermissionsModule,
     NotificationsModule,
     ProfileModule,
+    BasketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
