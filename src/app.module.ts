@@ -10,6 +10,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { users } from './auth/entities/users.entity';
 import { ProfileModule } from './profile/profile.module';
 import { BasketModule } from './basket/basket.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { BasketModule } from './basket/basket.module';
     NotificationsModule,
     ProfileModule,
     BasketModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

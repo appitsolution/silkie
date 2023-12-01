@@ -7,6 +7,7 @@ const types = {
   price: String,
 };
 
+type Types = typeof types;
 @Schema({
   timestamps: true,
 })
@@ -14,15 +15,8 @@ export class Basket {
   @Prop({ required: true })
   userId: string;
 
-  @Prop({ required: true, type: [types] })
-  basket: [
-    {
-      userId: string;
-      chickenNuggetsDates: [string];
-      canjaDeGalinhaDates: [string];
-      price: string;
-    },
-  ];
+  @Prop({ required: true, type: [types], default: [] })
+  basket: Types[];
 }
 
 export const BasketSchema = SchemaFactory.createForClass(Basket);
