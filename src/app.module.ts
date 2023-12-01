@@ -8,6 +8,7 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { users } from './auth/entities/users.entity';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { users } from './auth/entities/users.entity';
     ForgotModule,
     PermissionsModule,
     NotificationsModule,
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

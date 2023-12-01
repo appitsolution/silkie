@@ -14,6 +14,9 @@ export class Users {
   @Prop()
   lastName: string;
 
+  @Prop({ default: '' })
+  phone: '';
+
   @Prop({ default: 'USD' })
   currentCurrency: string;
 

@@ -45,13 +45,16 @@ export class AuthService {
       const result = await this.usersModule.save(
         this.usersModule.create({
           id: generateId,
-          role: data.role,
           email: data.email,
           password: bcrypt.hashSync(data.password),
         }),
       );
 
-      await this.usersModelData.create({ userId: generateId });
+      await this.usersModelData.create({
+        userId: generateId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+      });
 
       return {
         code: 201,
