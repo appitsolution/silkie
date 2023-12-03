@@ -50,6 +50,12 @@ export class ProfileService {
         userId: login.id,
       });
 
+      const currentRole = await this.usersModule.findOne({
+        where: {
+          id: currentUser.id,
+        },
+      });
+
       if (!currentUser) {
         return {
           code: 404,
@@ -58,6 +64,7 @@ export class ProfileService {
       }
 
       if (
+        currentRole.role === Role.SUPER_ADMIN ||
         !Boolean(
           currentUser.connectUsers.includes(userId) ||
             currentUser.userId === userId,
@@ -122,6 +129,11 @@ export class ProfileService {
       const currentUser = await this.usersModelData.findOne({
         userId: login.id,
       });
+      const currentRole = await this.usersModule.findOne({
+        where: {
+          id: currentUser.id,
+        },
+      });
 
       if (!currentUser) {
         return {
@@ -131,6 +143,7 @@ export class ProfileService {
       }
 
       if (
+        currentRole.role === Role.SUPER_ADMIN ||
         !Boolean(
           currentUser.connectUsers.includes(userId) ||
             currentUser.userId === userId,
@@ -142,9 +155,15 @@ export class ProfileService {
         };
       }
 
-      const userDataCurrent = await this.usersModelData.findOne({
-        userId: userId,
-      });
+      const userDataCurrent = await (async () => {
+        if (currentRole.role === Role.SUPER_ADMIN) {
+          return await this.usersModelData.findOne();
+        } else {
+          return await this.usersModelData.findOne({
+            userId: userId,
+          });
+        }
+      })();
 
       const users = await Promise.all(
         userDataCurrent.connectUsers.map(async (item) => {
