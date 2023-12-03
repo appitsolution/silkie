@@ -101,6 +101,89 @@ export class ProfileService {
     }
   }
 
+  async getDataProfileAll(userId: string, req: Request) {
+    const token = getBearerToken(req);
+    if (!userId || !token) {
+      return {
+        code: 400,
+        message: 'Not all arguments',
+      };
+    }
+
+    try {
+      const login = getJwt(token);
+      if (!login) {
+        return {
+          code: 404,
+          message: 'user not found',
+        };
+      }
+
+      const currentUser = await this.usersModelData.findOne({
+        userId: login.id,
+      });
+
+      if (!currentUser) {
+        return {
+          code: 404,
+          message: 'user not found',
+        };
+      }
+
+      if (
+        !Boolean(
+          currentUser.connectUsers.includes(userId) ||
+            currentUser.userId === userId,
+        )
+      ) {
+        return {
+          code: 403,
+          message: 'You do not have permission',
+        };
+      }
+
+      const userDataCurrent = await this.usersModelData.findOne({
+        userId: userId,
+      });
+
+      const users = await Promise.all(
+        userDataCurrent.connectUsers.map(async (item) => {
+          const user = await this.usersModelData
+            .findOne({ userId: item })
+            .select({ _id: 0, __v: 0, createdAt: 0, updatedAt: 0 })
+            .lean()
+            .exec();
+          const prepayment = await this.prepaymentModel.findOne({
+            userId: item,
+          });
+
+          const userNative = await this.usersModule.findOne({
+            where: {
+              id: item,
+            },
+            select: ['email', 'role'],
+          });
+          return {
+            ...user,
+            email: userNative.email,
+            role: userNative.role,
+            prepayment,
+          };
+        }),
+      );
+
+      return {
+        code: 200,
+        users,
+      };
+    } catch (err) {
+      return {
+        code: 500,
+        message: err,
+      };
+    }
+  }
+
   async editEmail(data: UpdateEmailDto, req: Request) {
     const token = getBearerToken(req);
     if (!data.userId || !data.newEmail || !token) {

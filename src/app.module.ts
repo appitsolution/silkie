@@ -11,6 +11,7 @@ import { users } from './auth/entities/users.entity';
 import { ProfileModule } from './profile/profile.module';
 import { BasketModule } from './basket/basket.module';
 import { PaymentModule } from './payment/payment.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { PaymentModule } from './payment/payment.module';
     ProfileModule,
     BasketModule,
     PaymentModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

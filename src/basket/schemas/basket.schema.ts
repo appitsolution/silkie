@@ -1,9 +1,13 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 
+const dateTypes = {
+  startDate: String,
+  endDate: String,
+};
 const types = {
   userId: String,
-  chickenNuggetsDates: [String],
-  canjaDeGalinhaDates: [String],
+  chickenNuggetsDates: [dateTypes],
+  canjaDeGalinhaDates: [dateTypes],
   price: String,
 };
 

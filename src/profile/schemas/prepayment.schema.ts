@@ -3,13 +3,19 @@ import { Role } from 'src/constants/roles';
 
 const types = {
   active: Boolean,
-  endDate: Array,
+  date: Array,
 };
 
 const values = {
   active: false,
-  endDate: [],
+  date: [],
 };
+
+interface SubscriptionDate {
+  startDate: string;
+  endDate: string;
+}
+
 @Schema({
   timestamps: true,
 })
@@ -20,13 +26,13 @@ export class PrePayment {
   @Prop({ type: types, default: values })
   chickenNuggets: {
     active: boolean;
-    endDate: [string];
+    date: SubscriptionDate[];
   };
 
   @Prop({ type: types, default: values })
   canjaDeGalinha: {
     active: boolean;
-    endDate: [string];
+    date: SubscriptionDate[];
   };
 }
 

@@ -9,6 +9,9 @@ import getJwt from 'src/methods/getJwt';
 import { Payment } from './schemas/payment.schema';
 import generateOrderId from 'src/methods/generateOrderId';
 import getCurrentDate from 'src/methods/getCurrentDate';
+import { PrePayment } from 'src/profile/schemas/prepayment.schema';
+import moment from 'moment';
+import isDatePassed from 'src/methods/isDatePassed';
 
 @Injectable()
 export class PaymentService {
@@ -16,6 +19,8 @@ export class PaymentService {
     @InjectModel(Users.name) private usersModelData: mongoose.Model<Users>,
     @InjectModel(Basket.name) private basketModel: mongoose.Model<Basket>,
     @InjectModel(Payment.name) private paymentModel: mongoose.Model<Payment>,
+    @InjectModel(PrePayment.name)
+    private prePaymentModel: mongoose.Model<PrePayment>,
   ) {}
 
   async createOrder(userId: string, req: Request) {
@@ -58,7 +63,7 @@ export class PaymentService {
 
       const basketUser = await this.basketModel.findOne({ userId: userId });
 
-      if (!basketUser || !basketUser.basket || basketUser.basket.length === 0) {
+      if (!basketUser || !basketUser.basket || basketUser.basket.length !== 0) {
         return {
           code: 404,
           message: 'basket is empty',
@@ -129,6 +134,82 @@ export class PaymentService {
           message: 'order not found',
         };
       }
+
+      await Promise.all(
+        checkOrder.basket.map(async (item) => {
+          const checkPrePayment = await this.prePaymentModel.findOne({
+            userId: item.userId,
+          });
+
+          if (checkPrePayment) {
+            const chickenNuggetsFilter =
+              checkPrePayment.chickenNuggets.date.filter(
+                (date) => !isDatePassed(date.endDate),
+              );
+
+            const canjaDeGalinhaFilter =
+              checkPrePayment.canjaDeGalinha.date.filter(
+                (date) => !isDatePassed(date.endDate),
+              );
+
+            const chickenNuggetsNew = item.chickenNuggetsDates.map((date) => {
+              return {
+                startDate: date,
+                endDate: moment(date).add(30, 'days').format('DD.MM.YYYY'),
+              };
+            });
+            const canjaDeGalinhaNew = item.canjaDeGalinhaDates.map((date) => {
+              return {
+                startDate: date,
+                endDate: moment(date).add(30, 'days').format('DD.MM.YYYY'),
+              };
+            });
+
+            await this.prePaymentModel.findOneAndUpdate(
+              { userId: item.userId },
+              {
+                chickenNuggets: {
+                  active:
+                    [...chickenNuggetsFilter, ...chickenNuggetsNew].length !==
+                    0,
+                  date: [...chickenNuggetsFilter, ...chickenNuggetsNew],
+                },
+                canjaDeGalinha: {
+                  active:
+                    [...canjaDeGalinhaFilter, ...canjaDeGalinhaNew].length !==
+                    0,
+                  date: [...canjaDeGalinhaFilter, ...canjaDeGalinhaNew],
+                },
+              },
+            );
+          } else {
+            const chickenNuggetsNew = item.chickenNuggetsDates.map((date) => {
+              return {
+                startDate: date,
+                endDate: moment(date).add(30, 'days').format('DD.MM.YYYY'),
+              };
+            });
+            const canjaDeGalinhaNew = item.canjaDeGalinhaDates.map((date) => {
+              return {
+                startDate: date,
+                endDate: moment(date).add(30, 'days').format('DD.MM.YYYY'),
+              };
+            });
+
+            await this.prePaymentModel.create({
+              userId: item.userId,
+              chickenNuggets: {
+                active: chickenNuggetsNew.length !== 0,
+                date: chickenNuggetsNew,
+              },
+              canjaDeGalinha: {
+                active: canjaDeGalinhaNew.length !== 0,
+                date: canjaDeGalinhaNew,
+              },
+            });
+          }
+        }),
+      );
 
       await this.paymentModel.findOneAndUpdate(
         { orderId: orderId },

@@ -29,6 +29,13 @@ export class ProfileController {
   }
 
   @ApiHeader({ name: 'Authorization' })
+  @ApiQuery({ name: 'userId' })
+  @Get('all')
+  getDataProfileAll(@Query() args: { userId: string }, @Req() req: Request) {
+    return this.profileService.getDataProfileAll(args.userId, req);
+  }
+
+  @ApiHeader({ name: 'Authorization' })
   @Put('email')
   editEmail(@Body() data: UpdateEmailDto, @Req() req: Request) {
     return this.profileService.editEmail(data, req);
